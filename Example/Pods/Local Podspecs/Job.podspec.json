@@ -1,0 +1,22 @@
+{
+  "name": "Job",
+  "version": "0.1.0",
+  "summary": "A short description of Job.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/paco89lol@gmail.com/Job",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "paco89lol@gmail.com": "paco89lol@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/paco89lol@gmail.com/Job.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "Job/Classes/**/*"
+}
