@@ -179,27 +179,4 @@ class Tests: XCTestCase {
         wait(for: [expectation], timeout: 10)
     }
     
-    func testRetryForJobWithJobTimeout() {
-        let expectation = XCTestExpectation(description: "")
-        let timeout = 2
-        let retryTime = 5
-        var count = 0
-        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency()).addJob(Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
-            if count == retryTime {
-                DispatchQueue.main.asyncAfter(deadline: .now()+1, execute: {
-                    result.onSuccess()
-                })
-                
-            } else {
-                count += 1
-                DispatchQueue.main.asyncAfter(deadline: .now()+1, execute: {
-                    result.onError(error: nil)
-                })
-            }
-        })).run { (queue, error) in
-            XCTAssertEqual(error!, JobError.timeout)
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 10)
-    }
 }
