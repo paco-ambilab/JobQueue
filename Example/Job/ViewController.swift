@@ -24,28 +24,25 @@ class ViewController: UIViewController {
     }
 
     func getUser() {
-        var time = 1
-        
-        jobqueue = JobQueue<NoDependency>(label: "http", dependency: nil, isGuaranteedComplete: true, timeout: 0)
-        let job1 = Job<NoDependency>(label: "Job1") { (dependency, observable) in
-            print("job1")
-            observable.onSuccess()
+        class MyDependency: JobQueueDependency {
+            var jobName: String = ""
         }
-        let job2 = Job<NoDependency>(label: "Job2", retry: 1) { (dependency, observable) in
-            print("job2")
-            if time == 1 {
-                time = 0
-                observable.onError(error: nil)
-            } else {
-                observable.onSuccess()
-            }
-            
-        }
-        jobqueue.addJob(job1)
-        jobqueue.addJob(job2)
-        
-        jobqueue.run { (queue, error) in
-            print("completion \(error)")
+        JobQueue(label: "TestMeasurement", dependency: MyDependency())
+            .addJob(Job<MyDependency>(label: "Job 1", block: { (dependency, result) in
+                dependency?.jobName = "Job 1"
+                print("run Job 1")
+                result.onSuccess()
+        })).addJob(Job<MyDependency>(label: "Job 2", block: { (dependency, result) in
+            dependency?.jobName = "Job 2"
+            print("run Job 2")
+            result.onSuccess()
+        })).addJob(Job<MyDependency>(label: "Job 3", block: { (dependency, result) in
+            dependency?.jobName = "Job 3"
+            print("run Job 3")
+            result.onSuccess()
+        })).run { (queue, error) in
+            let dependency = queue.dependency as! MyDependency
+            print("Last job name:\(dependency.jobName)")
         }
         
     }
