@@ -11,15 +11,15 @@
 JobQueue is the way to avoid nested callbacks(Callback Hell). It is similar to PromiseKit. The main difference is this framework prefers not to pass or return a value between jobs/tasks. Those values cause complexity of maintaining due to one job/task change causing the change of the other job/tasks. To simplify it, we prefer to have a data dependency(Environment variable) in JobQueue, and jobs who are in the same JobQueue will share that environment variable.
 
 `JobQueue` contains a list of  `Job`s and run them with sequence. It also provides features including:
-- [-] timeout
-- [-] time measurement
-- [-] log delegate
-- [-] retain self for extending the `JobQueue` lifecycle
+- [X] timeout
+- [X] time measurement
+- [X] log delegate
+- [X] retain self for extending the `JobQueue` lifecycle
 
 `Job` contains a callback to execute the instruction. It also provides features including:
-- [-] timeout
-- [-] time measurement
-- [-] retry
+- [X] timeout
+- [X] time measurement
+- [X] retry
 
 you can treat Job is a data class to storing the detail of job and allow JobQueue to make it runnable.
 
