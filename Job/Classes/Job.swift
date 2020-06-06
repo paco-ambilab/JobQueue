@@ -39,9 +39,14 @@ public protocol JobPresentable {
     func forceCancel()
     func cloneForRetry() -> JobPresentable
     func shouldRetry() -> Bool
+    var executionTime: TimeInterval? { get }
 }
 
-public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable, TimeoutTimerDelegate {
+public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable, TimeoutTimerDelegate, CustomStringConvertible {
+    
+    public var description: String {
+        return "Job{id=\(id), name=\(label), error=\(error?.localizedDescription ?? ""), timeoutDuration=\(timeoutTimer.timeout), retry=\(isRetryJob), timeMeasurement=\(timeMeasurement)}"
+    }
     
     public let id: String
     
@@ -56,6 +61,12 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
     private let block: ((Dependency? , JobObservable) -> Void)
     
     let timeMeasurement = TimeMeasurement()
+    
+    public var executionTime: TimeInterval? {
+        get {
+            return timeMeasurement.diff
+        }
+    }
     
     let timeoutTimer: TimeoutTimer
     
@@ -156,8 +167,8 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
         isCompleted = true
         timeoutTimer.invalid()
         timeMeasurement.end()
-        self.error = JobError.customError(error: nil)
-        delegate?.job(job: self, onCompleteWith: JobError.customError(error: error))
+        self.error = JobError.customError(error: error)
+        delegate?.job(job: self, onCompleteWith: self.error)
     }
     
     /// triggered by time
@@ -225,9 +236,14 @@ public protocol JobQueuePresentable: class {
     var event: JobQueueEvent { get }
     var isRunning: Bool { get }
     var isGuaranteedComplete: Bool { get }
+    var executionTime: TimeInterval? { get }
 }
 
-public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable, JobQueueInteractable, JobDelegate, TimeoutTimerDelegate {
+public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable, JobQueueInteractable, JobDelegate, TimeoutTimerDelegate, CustomStringConvertible {
+    
+    public var description: String {
+        return "JobQueue{id=\(id), name=\(label), timeoutTimer=\(timeoutTimer), timeMeasurement=\(timeMeasurement)"
+    }
     
     public var currentJob: JobPresentable?
     
@@ -272,6 +288,12 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     
     fileprivate let timeoutTimer: TimeoutTimer
     
+    public var executionTime: TimeInterval? {
+        get {
+            return timeMeasurement.diff
+        }
+    }
+    
     fileprivate let timeMeasurement = TimeMeasurement()
     
     // Guarantee Complete
@@ -308,6 +330,12 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     
     @discardableResult public func addJob(_ job: Job<Dependency>) -> JobQueue<Dependency> {
         lock.lock(); defer { lock.unlock() }
+        if isRunning == true {
+            fatalError("JobQueue is running. addJob() is not allow")
+        }
+        if isCompleted == true {
+            fatalError("JobQueue is completed. addJob() is not allow")
+        }
         job.delegate = self
         _jobs.append(job)
         return self
@@ -541,7 +569,7 @@ class TimeMeasurement: CustomStringConvertible {
         return _diff
     }
     
-    private var _diff: Double?
+    private var _diff: CFAbsoluteTime?
     
     private var startTime: CFAbsoluteTime?
     
@@ -773,23 +801,23 @@ protocol JobQueueLoggerDelegate: class {
 extension JobQueueLoggerDelegate {
     
     func jobQueueLogger(_ logger: JobQueueLogger, onStart jobQueue: JobQueuePresentable) -> String {
-        return "JobQueue(\(jobQueue.label)): onStart jobQueue=\(jobQueue.label)"
+        return "JobQueue(\(jobQueue.label)) - start"
     }
     
     func jobQueueLogger(_ logger: JobQueueLogger, onComplete jobQueue: JobQueuePresentable, error: Error?) -> String {
-        return "JobQueue(\(jobQueue.label)): onComplete jobQueue=\(jobQueue.label) error=\(String(describing: error))"
+        return "JobQueue(\(jobQueue.label)) Error=\(String(describing: error)) - complete executionTime:\(jobQueue.executionTime ?? 0.0)"
     }
     
     func jobQueueLogger(_ logger: JobQueueLogger, onStart job: JobPresentable, jobQueue: JobQueuePresentable) -> String {
-        return "JobQueue(\(jobQueue.label)): onStart job=\(job.label)"
+        return "JobQueue(\(jobQueue.label)) Job=(\(job.label)) - start "
     }
     
     func jobQueueLogger(_ logger: JobQueueLogger, onRetry job: JobPresentable, jobQueue: JobQueuePresentable) -> String {
-        return "JobQueue(\(jobQueue.label)) onRetry job=\(job.label)"
+        return "JobQueue(\(jobQueue.label)) Job=(\(job.label)) - retry"
     }
     
     func jobQueueLogger(_ logger: JobQueueLogger, onComplete job: JobPresentable, jobQueue: JobQueuePresentable,  error: Error?) -> String {
-        return "JobQueue(\(jobQueue.label)): onComplete job=\(job.label) error=\(String(describing: error))"
+        return "JobQueue(\(jobQueue.label)) Job=(\(job.label)) Error=\(String(describing: error)) - complete executionTime:\(job.executionTime ?? 0.0)"
     }
 }
 
