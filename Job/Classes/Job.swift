@@ -673,7 +673,7 @@ class TimeoutTimer: CustomStringConvertible {
         }
         DispatchQueue.main.async {
             self.timer = Timer(timeInterval: self.timeout, target: self, selector: #selector(TimeoutTimer.onTimeout(timer:)), userInfo: nil, repeats: false)
-            RunLoop.current.add(self.timer!, forMode: RunLoopMode.commonModes)
+            RunLoop.current.add(self.timer!, forMode: RunLoop.Mode.common)
         }
     }
     
