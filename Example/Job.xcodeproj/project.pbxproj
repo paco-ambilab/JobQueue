@@ -42,7 +42,7 @@
 		607FACE51AFB9204008FA782 /* Job_Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Job_Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACEA1AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACEB1AFB9204008FA782 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
-		6AFC0469DAC59D54F7BD09A5 /* Job.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = Job.podspec; path = ../Job.podspec; sourceTree = "<group>"; };
+		6AFC0469DAC59D54F7BD09A5 /* Job.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = Job.podspec; path = ../Job.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		ACBFB8C7AA98580678ECDDD9 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		B45048C8379D3691B840FD7D /* Pods_Job_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Job_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC601C9831E56C75F07829D1 /* Pods_Job_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Job_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };

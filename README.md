@@ -13,6 +13,7 @@ JobQueue is the way to avoid nested callbacks(Callback Hell). It is similar to `
 - [-] timeout
 - [-] time measurement
 - [-] log delegate
+- [-] retain self for extending the `JobQueue` lifecycle
 
 `Job` contains a callback to execute the instruction. It also provides features including:
 - [-] timeout

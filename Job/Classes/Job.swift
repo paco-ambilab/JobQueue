@@ -192,7 +192,7 @@ public protocol JobQueueInteractable: JobQueuePresentable {
     func onCompleteJob(jobQueue: JobQueueInteractable)
     func endJobQueue(jobQueue: JobQueueInteractable)
     func onTimeOut(jobQueue: JobQueueInteractable)
-    func forceCancel(jobQueue: JobQueueInteractable)
+    func onForceCancel(jobQueue: JobQueueInteractable)
 }
 
 public enum JobQueueEvent {
@@ -209,7 +209,7 @@ public enum JobQueueEvent {
     case retryJob
     case onCompleteJob
     case endJobQueue
-    case forceCancel
+    case onForceCancel
     case onTimeOut
 }
 
@@ -227,7 +227,7 @@ public protocol JobQueuePresentable: class {
     var isGuaranteedComplete: Bool { get }
 }
 
-public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable, JobQueueInteractable, JobDelegate {
+public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable, JobQueueInteractable, JobDelegate, TimeoutTimerDelegate {
     
     public var currentJob: JobPresentable?
     
@@ -298,10 +298,12 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         let _label = label ?? uuid
         self.label = _label
         self._dependency = dependency
+        self.isGuaranteedComplete = isGuaranteedComplete
         timeoutTimer = TimeoutTimer(timeout: timeout)
         jobQueueLog = JobQueueLog(id: id, label: _label)
         logger = JobQueueLogger.shared
         dispatchQueue = .global()
+        timeoutTimer.delegate = self
     }
     
     @discardableResult public func addJob(_ job: Job<Dependency>) -> JobQueue<Dependency> {
@@ -312,6 +314,9 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     }
     
     public func run(completion: @escaping ((JobQueue, JobError?) -> Void)) {
+        if isGuaranteedComplete {
+            retainSelf = self
+        }
         completionHandler = completion
         dispatchEvent(event: .verifyJobQueue, jobQueue: self)
     }
@@ -325,6 +330,16 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     }
     
     ///end: JobDelegate
+    
+    /// start: TimeoutTimerDelegate
+    func onTimeout(_ timer: Timer) {
+        dispatchEvent(event: .onTimeOut, jobQueue: self)
+    }
+    /// end: TimeoutTimerDelegate
+    
+    public func forceCancel(jobQueue: JobQueueInteractable) {
+        dispatchEvent(event: .onForceCancel, jobQueue: jobQueue)
+    }
     
     fileprivate func dispatchEvent(event: JobQueueEvent, jobQueue: JobQueueInteractable) {
         switch event {
@@ -384,8 +399,8 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         case .onTimeOut:
             jobQueue.onTimeOut(jobQueue: jobQueue)
             dispatchEvent(event: .endJobQueue, jobQueue: jobQueue)
-        case .forceCancel:
-            jobQueue.forceCancel(jobQueue: jobQueue)
+        case .onForceCancel:
+            jobQueue.onForceCancel(jobQueue: jobQueue)
             dispatchEvent(event: .endJobQueue, jobQueue: jobQueue)
         }
     }
@@ -486,17 +501,24 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         timeMeasurement.end()
         logger?.onComplete(jobQueue: jobQueue, error: jobQueue.error)
         completionHandler(self, error)
+        retainSelf = nil
     }
     public func onTimeOut(jobQueue: JobQueueInteractable) {
         lock.lock(); defer { lock.unlock()}
+        for job in _jobs {
+            job.delegate = nil
+        }
         _jobs.removeAll()
         if let job = currentJob {
             job.forceCancel()
         }
         error = .timeout
     }
-    public func forceCancel(jobQueue: JobQueueInteractable) {
+    public func onForceCancel(jobQueue: JobQueueInteractable) {
         lock.lock(); defer { lock.unlock()}
+        for job in _jobs {
+            job.delegate = nil
+        }
         _jobs.removeAll()
         if let job = currentJob {
             job.forceCancel()
