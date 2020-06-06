@@ -14,13 +14,24 @@ class Tests: XCTestCase {
     }
     
     func testPerformance() {
-        
+        class Count {
+            var number: Int = 0
+            
+            private let lock = NSLock()
+            
+            func increment() -> Int {
+                lock.lock(); defer { lock.unlock() }
+                number += 1
+                return number
+            }
+        }
+        let count = Count()
         self.measure {
             let expectation = XCTestExpectation(description: "")
             class MyDependency: JobQueueDependency {
                 var jobName: String = ""
             }
-            JobQueue(label: "TestMeasurement", dependency: MyDependency())
+            JobQueue(label: "TestMeasurement\(count.increment())", dependency: MyDependency())
                 .addJob(Job<MyDependency>(label: "Job 1", block: { (dependency, result) in
                     dependency?.jobName = "Job 1"
                     result.onSuccess()
