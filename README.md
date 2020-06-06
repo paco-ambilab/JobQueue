@@ -1,10 +1,9 @@
 # Job
 
-[![CI Status](https://img.shields.io/travis/paco89lol@gmail.com/Job.svg?style=flat)](https://travis-ci.org/paco89lol@gmail.com/Job)
 [![Version](https://img.shields.io/cocoapods/v/Job.svg?style=flat)](https://cocoapods.org/pods/Job)
 [![License](https://img.shields.io/cocoapods/l/Job.svg?style=flat)](https://cocoapods.org/pods/Job)
 [![Platform](https://img.shields.io/cocoapods/p/Job.svg?style=flat)](https://cocoapods.org/pods/Job)
-[![Build](https://github.com/paco-ambilab/JobQueue/workflows/Swift/badge.svg)](https://github.com/Tundaware/JobQueue/actions?query=workflow%3ASwift)
+[![Build](https://github.com/paco-ambilab/JobQueue/workflows/build/badge.svg)](https://github.com/Tundaware/JobQueue/actions?query=workflow%3Abuild)
 
 ## Description
 
@@ -48,16 +47,23 @@ JobQueue(label: "TestMeasurement", dependency: MyDependency())
 }
 ```
 
-### Job
+
+### Create JobQueue
 
 ```swift
-let timeout = 2
+let timeout = 30
+let jobQueue = JobQueue(label: "TestMeasurement", dependency: NoDependency(), isGuaranteedComplete: true, timeout: TimeInterval(timeout))
+```
+
+### Create Job
+
+```swift
+let timeout = 5
 let retryTime = 3
-Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
+let job = Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
     // mark as complete
     result.onSuccess()
 })
-
 ```
 
 ### Log Record
