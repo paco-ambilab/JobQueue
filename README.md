@@ -25,6 +25,29 @@ you can treat Job is a data class to storing the detail of job and allow JobQueu
 
 ## Example
 
+```
+class MyDependency: JobQueueDependency {
+    var jobName: String = ""
+}
+JobQueue(label: "TestMeasurement", dependency: MyDependency())
+    .addJob(Job<MyDependency>(label: "Job 1", block: { (dependency, result) in
+        dependency?.jobName = "Job 1"
+        print("run Job 1")
+        result.onSuccess()
+})).addJob(Job<MyDependency>(label: "Job 2", block: { (dependency, result) in
+    dependency?.jobName = "Job 2"
+    print("run Job 2")
+    result.onSuccess()
+})).addJob(Job<MyDependency>(label: "Job 3", block: { (dependency, result) in
+    dependency?.jobName = "Job 3"
+    print("run Job 3")
+    result.onSuccess()
+})).run { (queue, error) in
+    let dependency = queue.dependency as! MyDependency
+    print("Last job name:\(dependency.jobName)")
+}
+```
+
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
 
 
