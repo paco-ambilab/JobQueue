@@ -59,7 +59,6 @@ class Tests: XCTestCase {
         })).run { (queue, error) in
             expectation.fulfill()
         }
-        
         wait(for: [expectation], timeout: 5)
     }
     
