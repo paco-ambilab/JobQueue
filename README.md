@@ -48,6 +48,18 @@ JobQueue(label: "TestMeasurement", dependency: MyDependency())
 }
 ```
 
+### Job
+
+```swift
+let timeout = 2
+let retryTime = 3
+Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
+    // mark as complete
+    result.onSuccess()
+})
+
+```
+
 ### Log Record
 
 ![image](https://github.com/paco-ambilab/JobQueue/blob/master/Screenshot/Screenshot%202020-06-06%20at%207.35.26%20PM.png)
