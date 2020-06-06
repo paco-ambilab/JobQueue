@@ -25,7 +25,7 @@ you can treat Job is a data class to storing the detail of job and allow JobQueu
 
 ## Example
 
-```
+```swift
 class MyDependency: JobQueueDependency {
     var jobName: String = ""
 }
