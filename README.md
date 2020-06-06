@@ -50,6 +50,8 @@ JobQueue(label: "TestMeasurement", dependency: MyDependency())
 
 ### Log Record
 
+![image](https://github.com/paco-ambilab/JobQueue/blob/master/Screenshot/Screenshot%202020-06-06%20at%207.35.26%20PM.png)
+
 
 ### Customizable Log and Redirect Log to Log server
 
