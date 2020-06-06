@@ -13,6 +13,33 @@ class Tests: XCTestCase {
         super.tearDown()
     }
     
+    func testPerformance() {
+        
+        self.measure {
+            let expectation = XCTestExpectation(description: "")
+            class MyDependency: JobQueueDependency {
+                var jobName: String = ""
+            }
+            JobQueue(label: "TestMeasurement", dependency: MyDependency())
+                .addJob(Job<MyDependency>(label: "Job 1", block: { (dependency, result) in
+                    dependency?.jobName = "Job 1"
+                    result.onSuccess()
+            })).addJob(Job<MyDependency>(label: "Job 2", block: { (dependency, result) in
+                dependency?.jobName = "Job 2"
+                result.onSuccess()
+            })).addJob(Job<MyDependency>(label: "Job 3", block: { (dependency, result) in
+                dependency?.jobName = "Job 3"
+                result.onSuccess()
+            })).run { (queue, error) in
+                let dependency = queue.dependency as! MyDependency
+                XCTAssertEqual(dependency.jobName, "Job 3")
+                expectation.fulfill()
+            }
+            wait(for: [expectation], timeout: 5)
+        }
+        
+    }
+    
     func testRetainSelf() {
         
         let expectation = XCTestExpectation(description: "")
