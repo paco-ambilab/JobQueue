@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites name='Job_Tests.xctest' tests='11' failures='0'>
+  <testsuite name='Job_Tests.Tests' tests='11' failures='0'>
+    <testcase classname='Job_Tests.Tests' name='testCancelJobQueue' time='0.003'/>
+    <testcase classname='Job_Tests.Tests' name='testNoRetainSelf' time='5.002'/>
+    <testcase classname='Job_Tests.Tests' name='testNoTimeoutForJob' time='2.013'/>
+    <testcase classname='Job_Tests.Tests' name='testNoTimeoutForJobQueue' time='3.016'/>
+    <testcase classname='Job_Tests.Tests' name='testPerformance' time='0.326'/>
+    <testcase classname='Job_Tests.Tests' name='testRetainSelf' time='0.001'/>
+    <testcase classname='Job_Tests.Tests' name='testRetryForJobWithFailure' time='0.002'/>
+    <testcase classname='Job_Tests.Tests' name='testRetryForJobWithJobQueueTimeout' time='2.001'/>
+    <testcase classname='Job_Tests.Tests' name='testRetryForJobWithSuccess' time='0.002'/>
+    <testcase classname='Job_Tests.Tests' name='testTimeoutForJob' time='2.003'/>
+    <testcase classname='Job_Tests.Tests' name='testTimoutForJobQueue' time='2.003'/>
+  </testsuite>
+</testsuites>
