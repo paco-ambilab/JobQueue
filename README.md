@@ -48,12 +48,48 @@ JobQueue(label: "TestMeasurement", dependency: MyDependency())
 }
 ```
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+### Log Record
 
+
+### Customizable Log and Redirect Log to Log server
+
+```swift
+
+class YourLogService: JobQueueLoggerDelegate {
+
+    init() {
+        JobQueueLogger.shared.delegate = self
+    }
+    
+    // JobQueueLoggerDelegate
+    
+    func jobQueueLogger(_ logger: JobQueueLogger, logForJobQueue: String) {
+        let message = logForJobQueue
+        // here to upload message to server 
+    }
+    
+    //Optional 
+    //func jobQueueLogger(_ logger: JobQueueLogger, onStart jobQueue: JobQueuePresentable) -> String {}
+    
+    //func jobQueueLogger(_ logger: JobQueueLogger, onComplete jobQueue: JobQueuePresentable, error: Error?) -> String {}
+    
+    //func jobQueueLogger(_ logger: JobQueueLogger, onStart job: JobPresentable, jobQueue: JobQueuePresentable) -> String {}
+    
+    //func jobQueueLogger(_ logger: JobQueueLogger, onRetry job: JobPresentable, jobQueue: JobQueuePresentable) -> String {}
+    
+    //func jobQueueLogger(_ logger: JobQueueLogger, onComplete job: JobPresentable, jobQueue: JobQueuePresentable,  error: Error?) -> String {}
+    
+}
+
+
+```
+
+
+To run the example project, clone the repo, and run `pod install` from the Example directory first.
 
 ## Requirements
 
-## Installation (currently unavailable)
+## Installation
 
 Job is available through [CocoaPods](https://cocoapods.org). To install
 it, simply add the following line to your Podfile:
