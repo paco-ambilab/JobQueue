@@ -88,6 +88,7 @@ class Tests: XCTestCase {
             XCTAssertEqual(error!, JobError.timeout)
             expectation.fulfill()
         }
+        
         wait(for: [expectation], timeout: 5)
     }
     
