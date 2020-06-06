@@ -778,7 +778,7 @@ class JobQueueLogger: JobQueueLoggerDelegate {
 
     private let lock = NSLock()
     
-    init() {
+    private init() {
         delegate = self
     }
     
