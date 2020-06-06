@@ -13,7 +13,28 @@ public enum JobError: Error {
     case customError(error: Error?)
     case canceled
     case timeout
+    
 }
+
+extension JobError: Equatable {
+    
+    static public func == (lhs: JobError, rhs: JobError) -> Bool {
+        switch (lhs,rhs) {
+        case (let .customError(error: lError), let .customError(error: rError)):
+            return lError?.localizedDescription == rError?.localizedDescription
+        case (.invalid, .invalid):
+            return true
+        case (.canceled, .canceled):
+            return true
+        case (.timeout, .timeout):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+
 
 private protocol JobDelegate: class {
     
@@ -33,8 +54,8 @@ public protocol JobObservable {
 public protocol JobPresentable {
     var id: String { get }
     var label: String { get }
-    var error: JobError? { get set }
-    var isRetryJob: Bool { get set }
+    var error: JobError? { get }
+    var isRetryJob: Bool { get }
     func run(onDispatchQueue dispatchQueue: DispatchQueue, dependency: JobQueueDependency?)
     func forceCancel()
     func cloneForRetry() -> JobPresentable
@@ -52,7 +73,13 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
     
     public let label: String
     
-    public var error: JobError?
+    public var error: JobError? {
+        get {
+            return _error
+        }
+    }
+    
+    private var _error: JobError?
     
     private(set) var isRunning: Bool = false
     
@@ -72,7 +99,13 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
     
     let retryer: JobQueueRetryer
     
-    public var isRetryJob: Bool = false
+    public var isRetryJob: Bool {
+        get {
+            return _isRetryJob
+        }
+    }
+    
+    private var _isRetryJob: Bool = false
     
     fileprivate weak var delegate: JobDelegate?
     
@@ -122,7 +155,7 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
 
     private func _cloneForRetry() -> Job<Dependency> {
         let job = Job<Dependency>(label: label, timeout: timeoutTimer.timeout, retry: retryer.retry - 1, block: block)
-        job.isRetryJob = true
+        job._isRetryJob = true
         job.delegate = delegate
         return job
     }
@@ -167,8 +200,8 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
         isCompleted = true
         timeoutTimer.invalid()
         timeMeasurement.end()
-        self.error = JobError.customError(error: error)
-        delegate?.job(job: self, onCompleteWith: self.error)
+        self._error = JobError.customError(error: error)
+        delegate?.job(job: self, onCompleteWith: self._error)
     }
     
     /// triggered by time
@@ -178,7 +211,8 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
         isCompleted = true
         timeoutTimer.invalid()
         timeMeasurement.end()
-        delegate?.job(job: self, onCompleteWith: JobError.timeout)
+        self._error = JobError.timeout
+        delegate?.job(job: self, onCompleteWith: self._error)
     }
 
 }
@@ -188,10 +222,11 @@ public protocol JobQueueDependency: class {
 }
 
 public class NoDependency: JobQueueDependency {
-    
+ 
+    public init() {}
 }
 
-public protocol JobQueueInteractable: JobQueuePresentable {
+private protocol JobQueueInteractable: JobQueuePresentable {
     
     func verifyJobQueue(jobQueue: JobQueueInteractable) -> Bool
     func startJobQueue(jobQueue: JobQueueInteractable) -> Bool
@@ -228,7 +263,7 @@ public protocol JobQueuePresentable: class {
     
     var id: String { get }
     var label: String { get }
-    var error: JobError? { get set }
+    var error: JobError? { get }
     var jobQueueLog: JobQueueLog { get }
     var currentJob: JobPresentable? { get }
     var jobs: [JobPresentable] { get }
@@ -282,7 +317,13 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     
     fileprivate(set) var _event: JobQueueEvent = .initJobQueue
     
-    public var error: JobError?
+    public var error: JobError? {
+        get {
+            return _error
+        }
+    }
+    
+    private var _error: JobError?
     
     fileprivate(set) var dispatchQueue: DispatchQueue
     
@@ -314,7 +355,7 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     
     fileprivate let lock = NSLock()
     
-    public init(label: String? = nil, dependency: Dependency? = nil, isGuaranteedComplete: Bool = false, timeout: TimeInterval = 0) {
+    public init(label: String? = nil, dependency: Dependency? = nil, isGuaranteedComplete: Bool = true, timeout: TimeInterval = 0) {
         let uuid = UUID().uuidString
         self.id = uuid
         let _label = label ?? uuid
@@ -341,12 +382,13 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         return self
     }
     
-    public func run(completion: @escaping ((JobQueue, JobError?) -> Void)) {
+    @discardableResult public func run(completion: @escaping ((JobQueue, JobError?) -> Void)) -> JobQueue<Dependency> {
         if isGuaranteedComplete {
             retainSelf = self
         }
         completionHandler = completion
         dispatchEvent(event: .verifyJobQueue, jobQueue: self)
+        return self
     }
     
     ///start: JobDelegate
@@ -365,8 +407,8 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     }
     /// end: TimeoutTimerDelegate
     
-    public func forceCancel(jobQueue: JobQueueInteractable) {
-        dispatchEvent(event: .onForceCancel, jobQueue: jobQueue)
+    public func forceCancel() {
+        dispatchEvent(event: .onForceCancel, jobQueue: self)
     }
     
     fileprivate func dispatchEvent(event: JobQueueEvent, jobQueue: JobQueueInteractable) {
@@ -435,15 +477,15 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
     
     //JobQueueInteractable
     
-    public func verifyJobQueue(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func verifyJobQueue(jobQueue: JobQueueInteractable) -> Bool {
         if isRunning == true {
-            error = .invalid
+            _error = .invalid
             return false
         }
         return true
     }
 
-    public func startJobQueue(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func startJobQueue(jobQueue: JobQueueInteractable) -> Bool {
         if isRunning == true {
             return false
         }
@@ -459,7 +501,7 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         return true
     }
 
-    public func findNextJob(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func findNextJob(jobQueue: JobQueueInteractable) -> Bool {
         lock.lock(); defer { lock.unlock()}
         guard let job = _jobs.first else {
             currentJob = nil
@@ -469,7 +511,7 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         _jobs.removeFirst()
         return true
     }
-    public func verifyJob(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func verifyJob(jobQueue: JobQueueInteractable) -> Bool {
         
         guard error == nil else {
             return false
@@ -486,10 +528,10 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         return true
         
     }
-    public func prepareToRunJob(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func prepareToRunJob(jobQueue: JobQueueInteractable) -> Bool {
         return true
     }
-    public func runJob(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func runJob(jobQueue: JobQueueInteractable) -> Bool {
         guard let job = currentJob else {
             return false
         }
@@ -497,7 +539,7 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         job.run(onDispatchQueue: dispatchQueue, dependency: _dependency)
         return true
     }
-    public func retryJob(jobQueue: JobQueueInteractable) -> Bool {
+    fileprivate func retryJob(jobQueue: JobQueueInteractable) -> Bool {
         guard let job = currentJob else {
             return false
         }
@@ -507,18 +549,18 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         retryJob.run(onDispatchQueue: dispatchQueue, dependency: _dependency)
         return true
     }
-    public func onCompleteJob(jobQueue: JobQueueInteractable) {
+    fileprivate func onCompleteJob(jobQueue: JobQueueInteractable) {
         guard let job = currentJob else {
             return
         }
         if job.error != nil && job.shouldRetry() {
-            error = nil
+            _error = nil
         } else {
-            error = job.error
+            _error = job.error
         }
         logger?.onComplete(job: job, jobQueue: jobQueue, error: job.error)
     }
-    public func endJobQueue(jobQueue: JobQueueInteractable) {
+    fileprivate func endJobQueue(jobQueue: JobQueueInteractable) {
         lock.lock(); defer { lock.unlock()}
         guard isCompleted == false else {
             return
@@ -531,27 +573,29 @@ public final class JobQueue<Dependency: JobQueueDependency>: JobQueuePresentable
         completionHandler(self, error)
         retainSelf = nil
     }
-    public func onTimeOut(jobQueue: JobQueueInteractable) {
+    fileprivate func onTimeOut(jobQueue: JobQueueInteractable) {
         lock.lock(); defer { lock.unlock()}
         for job in _jobs {
             job.delegate = nil
         }
         _jobs.removeAll()
         if let job = currentJob {
+            (job as! Job<Dependency>).delegate = nil
             job.forceCancel()
         }
-        error = .timeout
+        _error = .timeout
     }
-    public func onForceCancel(jobQueue: JobQueueInteractable) {
+    fileprivate func onForceCancel(jobQueue: JobQueueInteractable) {
         lock.lock(); defer { lock.unlock()}
         for job in _jobs {
             job.delegate = nil
         }
         _jobs.removeAll()
         if let job = currentJob {
+            (job as! Job<Dependency>).delegate = nil
             job.forceCancel()
         }
-        error = .canceled
+        _error = .canceled
     }
 }
 
@@ -712,7 +756,7 @@ public class JobQueueLog {
     
     let label: String
     
-    var logs: [String] = []
+    public var logs: [String] = []
     
     init(id: String, label: String) {
         self.id = id
