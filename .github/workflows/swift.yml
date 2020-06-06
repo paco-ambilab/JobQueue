@@ -1,0 +1,20 @@
+name: Swift
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Bundle Install
+      run: |
+        bundle update --bundler
+        bundle install
+    - name: Run TestCase
+      run: |
+        bundle exec fastlane run_test
