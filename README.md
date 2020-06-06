@@ -53,7 +53,7 @@ JobQueue(label: "TestMeasurement", dependency: MyDependency())
 
 ```swift
 let timeout = 30
-let jobQueue = JobQueue(label: "TestMeasurement", dependency: MyDependency(), timeout: TimeInterval(timeout))
+let jobQueue = JobQueue(label: "TestMeasurement", dependency: NoDependency(), isGuaranteedComplete: true, timeout: TimeInterval(timeout))
 ```
 
 ### Create Job
