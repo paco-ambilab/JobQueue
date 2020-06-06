@@ -4,6 +4,7 @@
 [![Version](https://img.shields.io/cocoapods/v/Job.svg?style=flat)](https://cocoapods.org/pods/Job)
 [![License](https://img.shields.io/cocoapods/l/Job.svg?style=flat)](https://cocoapods.org/pods/Job)
 [![Platform](https://img.shields.io/cocoapods/p/Job.svg?style=flat)](https://cocoapods.org/pods/Job)
+[![Build](https://github.com/paco-ambilab/JobQueue/workflows/Swift/badge.svg)](https://github.com/Tundaware/JobQueue/actions?query=workflow%3ASwift)
 
 ## Description
 
