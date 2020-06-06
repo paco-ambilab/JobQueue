@@ -48,16 +48,23 @@ JobQueue(label: "TestMeasurement", dependency: MyDependency())
 }
 ```
 
-### Job
+
+### Create JobQueue
 
 ```swift
-let timeout = 2
+let timeout = 30
+let jobQueue = JobQueue(label: "TestMeasurement", dependency: MyDependency(), timeout: TimeInterval(timeout))
+```
+
+### Create Job
+
+```swift
+let timeout = 5
 let retryTime = 3
-Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
+let job = Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
     // mark as complete
     result.onSuccess()
 })
-
 ```
 
 ### Log Record
