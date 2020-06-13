@@ -111,11 +111,11 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
     
     private let lock = NSLock()
     
-    public init(label: String, timeout: TimeInterval = 0, retry: Int = 0, block: @escaping ((Dependency?, JobObservable) -> Void)) {
+    public init(label: String, timeout: TimeInterval = 0, retryLimit: Int = 0, block: @escaping ((Dependency?, JobObservable) -> Void)) {
         self.id = UUID().uuidString
         self.label = label
         timeoutTimer = TimeoutTimer(timeout: timeout)
-        retryer = JobQueueRetryer(retry: retry)
+        retryer = JobQueueRetryer(retry: retryLimit)
         self.block = block
         timeoutTimer.delegate = self
     }
@@ -154,7 +154,7 @@ public class Job<Dependency: JobQueueDependency>: JobPresentable, JobObservable,
     }
 
     private func _cloneForRetry() -> Job<Dependency> {
-        let job = Job<Dependency>(label: label, timeout: timeoutTimer.timeout, retry: retryer.retry - 1, block: block)
+        let job = Job<Dependency>(label: label, timeout: timeoutTimer.timeout, retryLimit: retryer.retry - 1, block: block)
         job._isRetryJob = true
         job.delegate = delegate
         return job
