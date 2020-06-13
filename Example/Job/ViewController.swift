@@ -14,16 +14,29 @@ class ViewController: UIViewController {
     var jobqueue: JobQueue<NoDependency>!
     override func viewDidLoad() {
         super.viewDidLoad()
-        getUser()
-        // Do any additional setup after loading the view, typically from a nib.
+        let button = UIButton(frame: .zero)
+        button.setTitle("Run Task", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.addTarget(self, action: #selector(didPressButton(_:)), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(button)
+        button.widthAnchor.constraint(equalToConstant: 120).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        button.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        button.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+        
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    @objc func didPressButton(_ sender: Any) {
+        runTask()
+    }
 
-    func getUser() {
+    func runTask() {
         class MyDependency: JobQueueDependency {
             var jobName: String = ""
         }

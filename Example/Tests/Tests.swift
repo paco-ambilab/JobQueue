@@ -150,7 +150,7 @@ class Tests: XCTestCase {
         let expectation = XCTestExpectation(description: "")
         let retryTime = 3
         var count = 0
-        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency()).addJob(Job<NoDependency>(label: "A Normal Job", retry: retryTime, block: { (dependency, result) in
+        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency()).addJob(Job<NoDependency>(label: "A Normal Job", retryLimit: retryTime, block: { (dependency, result) in
             if count == retryTime {
                 result.onSuccess()
             } else {
@@ -168,7 +168,7 @@ class Tests: XCTestCase {
         let expectation = XCTestExpectation(description: "")
         let retryTime = 3
         var count = 0
-        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency()).addJob(Job<NoDependency>(label: "A Normal Job", retry: retryTime, block: { (dependency, result) in
+        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency()).addJob(Job<NoDependency>(label: "A Normal Job", retryLimit: retryTime, block: { (dependency, result) in
             if count == retryTime+1 {
                 result.onSuccess()
             } else {
@@ -187,7 +187,7 @@ class Tests: XCTestCase {
         let timeout = 2
         let retryTime = 3
         var count = 0
-        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency(), timeout: TimeInterval(timeout)).addJob(Job<NoDependency>(label: "A Normal Job", retry: retryTime, block: { (dependency, result) in
+        JobQueue(label: "testTimoutForJobQueue", dependency: NoDependency(), timeout: TimeInterval(timeout)).addJob(Job<NoDependency>(label: "A Normal Job", retryLimit: retryTime, block: { (dependency, result) in
             if count == retryTime+1 {
                 DispatchQueue.main.asyncAfter(deadline: .now()+1, execute: {
                     result.onSuccess()
