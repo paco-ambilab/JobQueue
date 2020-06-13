@@ -24,7 +24,7 @@ you can treat Job is a data class to storing the detail of job and allow JobQueu
 
 ## WorkFlow
 
-![image](https://github.com/paco-ambilab/JobQueue/blob/master/Screenshot/JobQueue_WorkFlow.jpg){ width=50% }
+![image](https://github.com/paco-ambilab/JobQueue/blob/master/Screenshot/JobQueue_WorkFlow.jpg=100x20)
 
 ## Example
 
