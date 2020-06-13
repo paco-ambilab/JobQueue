@@ -22,6 +22,10 @@
 
 you can treat Job is a data class to storing the detail of job and allow JobQueue to make it runnable.
 
+## WorkFlow
+
+![image](https://github.com/paco-ambilab/JobQueue/blob/master/Screenshot/JobQueue_WorkFlow.jpg)
+
 ## Example
 
 ```swift
