@@ -64,7 +64,7 @@ let jobQueue = JobQueue(label: "TestMeasurement", dependency: NoDependency(), is
 ```swift
 let timeout = 5
 let retryTime = 3
-let job = Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retry: retryTime, block: { (dependency, result) in
+let job = Job<NoDependency>(label: "A Normal Job", timeout: TimeInterval(timeout), retryLimit: retryTime, block: { (dependency, result) in
     // mark as complete
     result.onSuccess()
 })
